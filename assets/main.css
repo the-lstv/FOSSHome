@@ -1,0 +1,425 @@
+#desktop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+}
+
+#mainWorkspace {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+    height: 100%;
+}
+
+#initSetup, #preload {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+#commandWrapper {
+    position: absolute;
+    bottom: 50px;
+    left: 100px;
+    right: 100px;
+    font-family: "JetBrains Mono";
+}
+
+#command {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--ui-bg-0);
+    display: flex;
+    gap: .8em;
+}
+
+#command .textContainer {
+    min-height: 1.2em;
+}
+
+#command input {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+}
+
+#commandPointer, #commandSelection {
+    position: absolute;
+    top: 0;
+    height: 1.2em;
+    width: 9.6px;
+}
+
+#hint {
+    position: absolute;
+    top: -100%;
+    z-index: -1;
+    text-align: center;
+    left: 0;
+    right: 0;
+    opacity: .8;
+}
+
+#commandWrapper:not(.focused) #commandPointer {
+    outline: 1px solid var(--accent-light);
+}
+
+#commandWrapper:not(.selection) #commandSelection {
+    display: none;
+}
+
+#commandWrapper.selection #commandSelection {
+    display: block;
+}
+
+#commandWrapper.selection #commandPointer {
+    display: none;
+}
+
+#completionMenu {
+    position: absolute;
+    bottom: 90%;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 1px;
+    font-size: .8em;
+    max-height: 300px;
+}
+
+#commandWrapper:not(.focused) #completionMenu:not(:hover) {
+    display: none !important;
+}
+
+#commandWrapper:not(.focused) #commandConsole:not(:hover) {
+    height: 3em;
+    opacity: .2;
+    padding-bottom: 0em;
+}
+
+.focused #commandPointer {
+    background: var(--accent-light);
+}
+
+.focused #commandPointer.blink {
+    background: rgb(var(--accent-light-raw), .1);
+}
+
+.aGVudGFp {display: none}
+
+#commandSelection {
+    background: rgb(var(--accent-light-raw), .1);
+}
+
+#commandConsole {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: #000;
+    height: 300px;
+    bottom: 100%;
+    border-radius: 15px;
+    outline: 1px solid var(--transparent-overlay);
+    box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1333333333);
+    transition: .4s;
+    white-space: pre-wrap;
+    padding: 8px 16px;
+    padding-bottom: 3em;
+    overflow: auto;
+}
+
+#completionMenu ls-option {
+    padding: 3px 8px;
+    margin: 2px 5px;
+    border-radius: 4px;
+}
+
+ls-option.selected {
+    outline: 2px solid var(--elevate-3);
+    background: rgb(var(--accent-light-raw), .1);
+}
+
+#commandHint {
+    opacity: .5;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+:root {
+    --font: "Poppins";
+}
+
+
+.window-handle {
+    background: var(--ui);
+    filter: brightness(.6);
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    padding-left: 15px;
+    align-items: center;
+}
+
+.focused .window-handle {
+    filter: unset;
+}
+
+.window-handle button {
+    font-size: .6em;
+    margin: 0;
+    -webkit-text-stroke-width: 1px;
+}
+
+.window-container {
+    position: absolute;
+    overflow: visible;
+}
+
+.window {
+    /* Pretty: */
+    border-radius: var(--br-lg);
+
+    /* Practical: */
+    /* border-radius: var(--br-lg) var(--br-lg) 0 0; */
+
+    overflow: hidden;
+    outline: 1px solid var(--transparent-overlay-strong);
+    box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.13);
+    background: var(--ui-bg-1);
+    
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.focused .window {
+    box-shadow: 0 10px 35px 4px rgb(0 0 0 / 30%);
+}
+
+.maximized .window {
+    border-radius: 0;
+}
+
+.maximized .window-buttons .bi-square::before {
+    content: "\F149" !important;
+}
+
+.window.acrylic {
+    background: var(--background-tr);
+    backdrop-filter: blur(40px);
+}
+
+iframe {
+    border: none;
+}
+
+.calculator {
+    display: flex;
+}
+
+.calculator .keypad button {
+    width: 2em;
+    height: 2em;
+    font-size: 2em;
+}
+
+.terminal {
+    width: 100%;
+    height: 100%;
+    background: #0006;
+}
+
+.terminal > .rendererContainer {
+    width: 100%;
+    height: 100%;
+}
+
+.terminal > .xterm-viewport.xterm-viewport {
+    background: transparent !important;
+}
+
+.xterm-dom-renderer-owner-1 .xterm-rows {
+    font-family: 'JetBrains Mono' !important;
+}
+
+.about {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    padding: 40px;
+    padding-bottom: 80px;
+    white-space: pre-wrap;
+    overflow: auto;
+    font-size: .9rem;
+}
+
+.window-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.draggableWidget {
+    --widget-radius: 20px;
+
+    position: absolute;
+    background: var(--ui);
+    border-radius: var(--widget-radius);
+    outline: 3px solid var(--transparent-overlay-dark);
+    transition: transform .15s;
+    min-width: 100px;
+    min-height: 100px;
+}
+
+.draggableWidgetContentContainer {
+    overflow: hidden;
+    border-radius: var(--widget-radius);
+    position: absolute;
+    inset: 0;
+}
+
+.draggableWidgetHandle {
+    height: 20px;
+    background: var(--ui-bg-1);
+    position: absolute;
+    top: 0;
+    left: 30px;
+    right: 30px;
+    transform: translateY(-50%);
+    outline: 1px solid var(--elevate-0);
+    border-radius: 20px;
+    opacity: .2;
+    transition: .4s;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+
+.draggableWidgetHandle i {
+    pointer-events: none;
+}
+
+.draggableWidgetContent {
+    position: absolute;
+    inset: 0;
+}
+
+.frame .draggableWidgetContent {
+    padding: 10px 20px;
+    background: var(--ui-bg-1);
+    border-radius: 12px;
+    inset: 12px;
+}
+
+.draggableWidget:hover .draggableWidgetHandle {
+    opacity: 1;
+}
+
+.draggableWidget.is-dragging {
+    cursor: grabbing;
+    opacity: .8;
+    outline: 2px solid var(--elevate-2);
+}
+
+.window-content {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    overflow: hidden;
+}
+
+.window-content iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.window-container .ls-resize-bar {
+    opacity: 0;
+}
+
+.window-container .ls-resize-bar-top {
+    transform: translateY(-50%);
+}
+
+.window-container .ls-resize-bar-bottom {
+    transform: translateY(50%);
+}
+
+.window-container .ls-resize-bar-left {
+    transform: translateX(-50%);
+}
+
+.window-container .ls-resize-bar-right {
+    transform: translateX(50%);
+}
+
+#statusBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 68px;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#statusBar > div {
+    background: var(--ui-border);
+    border-radius: 25px;
+    padding: 0 5px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.statusBarItem {
+    padding: 2px 12px;
+    border-radius: 24px;
+    cursor: pointer;
+}
+
+.statusBarItem.interactive:hover {
+    background: var(--transparent-overlay);
+}
+
+#statusBar hr {
+    display: inline-block;
+    border: none;
+    border-right: 1px solid var(--transparent-overlay);
+    height: 60%;
+    margin: 0 8px;
+}

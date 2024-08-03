@@ -1,0 +1,134 @@
+<head>
+
+    @manifest {
+
+        description: "
+        
+            Simple terminal window to test the LinuxJS shell or the FOSSHome patch.
+        
+        ";
+
+        title: "q";
+        lang: "en";
+
+        style: "flat";
+        theme: "dark";
+        accent: "deep-orange";
+
+        favicon: /logo.svg;
+    }
+
+    @resources {
+        ls-js: tiny, tooltips, select, modal, tabs, color, dragdrop, toast, resize, progress;
+        ls-css: base, select, ls-flat, tooltips, loader, modal, tabs, dragdrop, toast, resize, progress;
+
+        bootstrap-icons;
+
+        fonts: Poppins, "JetBrains Mono";
+
+        css: /assets/main.css;
+        js: /assets/os.js, /assets/window_manager.js, https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js;
+    }
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+
+</head>
+
+<page>
+
+    <script>
+        let os;
+
+        M.on("load", async () => {
+
+            let image = [
+                // Base image
+                await LinuxJS.remoteImage("/os/os.img?cache=" + Math.random()),
+
+                // Patches
+                // await LinuxJS.remoteImage("/os/patch.img?cache=" + Math.random())
+            ];
+
+            os = await LinuxJS({ image })
+
+            let terminalRender = N({
+                class: "rendererContainer"
+            });
+    
+            let terminalWindow = windowManager.createWindow({
+    
+                title: "Terminal",
+                // tags: ["acrylic"],
+    
+                width: 960,
+                height: 540,
+    
+                maxHeight: Infinity,
+                maxWidth: Infinity,
+    
+                onResize(){
+                    fit.fit() // Adjust terminal size automatically
+                }
+    
+            }, N("div", {
+                class: "terminal",
+                inner: [
+                    terminalRender
+                ]
+            }))
+    
+    
+            // Display the window
+            terminalWindow.addToWorkspace()
+    
+    
+            // Initialize Xterm.JS
+   
+            
+            let term = new Terminal(),
+                fit = new FitAddon.FitAddon()
+            ;
+
+            window.term = term;
+
+            term.loadAddon(fit);
+            term.open(terminalRender);
+    
+    
+            // Standard default bash ("-i" to launch an interactive shell)
+    
+            let bash = os.process('bash', null, ["-i"], {
+                // Push stdout to the terminal
+    
+                onstdout(data){
+                    console.log(data);
+
+                    term.write(data)
+                },
+    
+                onstderr(data){
+                    term.write(data)
+                },
+    
+                onexit(code){
+                    // ...
+                    terminalWindow.close()
+                }
+            })
+    
+    
+            // Push stdin to the bash
+    
+            term.onKey(e => {
+                // console.log(e);
+    
+                bash.std.in = e.key
+            });
+    
+    
+            fit.fit()
+        })
+    </script>
+</page>
