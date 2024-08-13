@@ -98,7 +98,7 @@
     
             // Standard default bash ("-i" to launch an interactive shell)
     
-            let bash = os.process('bash', null, ["-i"], {
+            let bash = await os.process('bash', null, ["-i"], {
                 // Push stdout to the terminal
     
                 onstdout(data){
@@ -119,7 +119,7 @@
     
     
             // Push stdin to the bash
-    
+
             term.onKey(e => {
                 // console.log(e);
     

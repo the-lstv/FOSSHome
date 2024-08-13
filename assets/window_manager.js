@@ -13,6 +13,14 @@ let windowManager = {
         windowManager._target = value
     },
 
+    focused_id: 0,
+
+    get focused(){
+        return windowManager.windowList[windowManager.focused_id]
+    },
+
+    onFocused(id, window){ },
+
     createWindow(options = {}, content = []){
         let tools, id;
     
@@ -47,7 +55,7 @@ let windowManager = {
                 inner: [
                     options.handle? N({class: "window-handle", inner: [
                         N("span", {
-                            innerText: options.title,
+                            inner: options.title,
                             class: "window-title"
                         }),
                         N({
@@ -74,16 +82,18 @@ let windowManager = {
     
         let handle;
         
-        if(options.handle) handle = LS.Util.RegisterMouseDrag(_window.get(".window-handle"), ".window-buttons *", {
+        if(options.handle) handle = LS.Util.RegisterMouseDrag(_window.get(".window-handle"), ".window-buttons *" + (options.handleInteractableSelector? `, ${options.handleInteractableSelector}`: ""), {
             buttons: [0],
             cursor: "grabbing"
         })
     
-        if(options.handle) _window.get(".window-handle").on("dblclick", () => {
+        if(options.handle) _window.get(".window-handle").on("dblclick", event => {
+            if(event.target.tagName === "button") return;
+
             tools.maximizeToggle()
         })
-    
-    
+
+
         let initialX = M.x,
             initialY = M.y,
             initialBound
@@ -142,6 +152,11 @@ let windowManager = {
     
                 Q(".window-container.focused").all().class("focused", 0)
                 _window.class("focused")
+
+                windowManager.focused_id = id;
+
+                windowManager.onFocused(id, tools)
+
                 if(options.onFocus) options.onFocus()
             },
     
@@ -220,6 +235,8 @@ let windowManager = {
         }
     
         id = windowManager.windowList.push(tools) - 1
+
+        tools.id = id;
     
         return tools
     }
