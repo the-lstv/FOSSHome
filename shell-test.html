@@ -39,7 +39,7 @@
 <page>
 
     <script>
-        let os;
+        let os, bash;
 
         M.on("load", async () => {
 
@@ -81,11 +81,11 @@
     
             // Display the window
             terminalWindow.addToWorkspace()
-    
-    
+
+
             // Initialize Xterm.JS
-   
-            
+
+
             let term = new Terminal(),
                 fit = new FitAddon.FitAddon()
             ;
@@ -94,17 +94,18 @@
 
             term.loadAddon(fit);
             term.open(terminalRender);
-    
-    
-            // Standard default bash ("-i" to launch an interactive shell)
-    
-            let bash = await os.process('bash', null, ["-i"], {
-                // Push stdout to the terminal
-    
-                onstdout(data){
-                    console.log(data);
 
-                    term.write(data)
+
+            // Standard default bash ("-i" to launch an interactive shell)
+
+            bash = await os.process('bash', null, ["-i"], {
+                onstdout(data){
+                    // this shi should be handled by xterm.js 😠
+                    if (data.includes('\x1B[18t')) {
+                        bash.std.in = `\x1B[8;${term.rows};${term.cols}t`;
+                    } else {
+                        term.write(data);
+                    }
                 },
     
                 onstderr(data){
@@ -116,14 +117,22 @@
                     terminalWindow.close()
                 }
             })
-    
-    
+
+
             // Push stdin to the bash
 
-            term.onKey(e => {
-                // console.log(e);
+            // term.onKey(e => {
+            //     // console.log(e);
     
-                bash.std.in = e.key
+            //     bash.std.in = e.key
+            // });
+
+            term.onData(data => {
+                bash.std.in = data
+            });
+
+            term.onResize(size => {
+                bash.std.in = `\x1B[8;${term.rows};${term.cols}t`;
             });
     
     

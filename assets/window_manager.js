@@ -19,6 +19,11 @@ let windowManager = {
         return windowManager.windowList[windowManager.focused_id]
     },
 
+    // https://cdn.extragon.cloud/lib/WindowManager/1.0:[*]/min.js
+
+    anyMaximized: false,
+    maximizedCount: 0,
+
     onFocused(id, window){ },
 
     createWindow(options = {}, content = []){
@@ -38,6 +43,8 @@ let windowManager = {
             minimizeable: true,
             closeable: true,
             handle: true,
+            snappingRadius: 50,
+            cornerSnapping: true,
         }, options)
     
         let _window = N({
@@ -77,9 +84,7 @@ let windowManager = {
         }).on("resize", (direction, properties) => {
             if(options.onResize) options.onResize(direction, properties)
         })
-    
-        // dragdrop.enableDrag(_window, _window.get(".window-handle"))
-    
+        
         let handle;
         
         if(options.handle) handle = LS.Util.RegisterMouseDrag(_window.get(".window-handle"), ".window-buttons *" + (options.handleInteractableSelector? `, ${options.handleInteractableSelector}`: ""), {
@@ -102,7 +107,12 @@ let windowManager = {
         function onMoveStart(){
             initialX = M.x
             initialY = M.y
+
             initialBound = _window.getBoundingClientRect()
+            currentX = initialBound.left
+            currentY = initialBound.top
+            previousX = currentX
+            previousY = currentY
     
             if(options.onMoveStart) options.onMoveStart()
         }
@@ -119,14 +129,22 @@ let windowManager = {
             
             let currentBound = _window.getBoundingClientRect();
     
-            let newX = Math.max((currentBound.width * -1) + 65, Math.min(innerWidth - 65, (M.x - (initialX - initialBound.left)))),
-                newY = Math.max(0, Math.min(innerHeight - 200, (M.y - (initialY - initialBound.top))))
-            ;
-    
-            _window.style.left = newX + "px"
-            _window.style.top = newY + "px"
-    
+            currentX = Math.max((currentBound.width * -1) + 65, Math.min(innerWidth - 65, (M.x - (initialX - initialBound.left)))),
+            currentY = Math.max(0, Math.min(innerHeight - 200, (M.y - (initialY - initialBound.top))))
+
+            // Window snapping
+            if(options.cornerSnapping){
+                if((currentX <= 0 && currentX > -options.snappingRadius && currentX < previousX) || (currentX + currentBound.width >= innerWidth && currentX + currentBound.width < innerWidth + options.snappingRadius && currentX > previousX)) currentX = previousX;
+                if(currentY + currentBound.height >= innerHeight && currentY + currentBound.height < innerHeight + options.snappingRadius && currentY > previousY) currentY = previousY;
+            }
+            
+            _window.style.left = currentX + "px"
+            _window.style.top = currentY + "px"
+
             if(options.onMove) options.onMove()
+
+            previousX = currentX
+            previousY = currentY
         })
     
         if(options.handle) handle.on("end", () => {
@@ -139,6 +157,8 @@ let windowManager = {
     
         let previousState;
         
+        let is_maximized = false;
+
         tools = {
             element: _window,
     
@@ -181,15 +201,13 @@ let windowManager = {
                 })
             },
     
-            _maximized: false,
-    
             get maximized(){
-                return tools._maximized
+                return is_maximized
             },
     
             set maximized(boolean){
                 boolean = !!boolean
-                tools._maximized = boolean
+                is_maximized = boolean
     
                 _window.class("maximized", boolean)
     
@@ -203,21 +221,29 @@ let windowManager = {
                         height: "100%",
                         minWidth: "unset",
                         maxWidth: "unset",
-                        minHeight:"unset",
-                        maxHeight:"unset",
+                        minHeight: "unset",
+                        maxHeight: "unset",
                     })
+
+                    windowManager.maximizedCount++
+                    windowManager.anyMaximized = !!windowManager.maximizedCount
                 } else {
                     _window.applyStyle({
                         top: previousState.top + "px",
                         left: previousState.left + "px",
-                        height: previousState.width + "px",
-                        width: previousState.height + "px",
+                        height: previousState.height + "px",
+                        width: previousState.width + "px",
                         minWidth: (options.minWidth) + "px",
                         maxWidth: (options.maxWidth) + "px",
                         minHeight: (options.minHeight + handleHeight) + "px",
                         maxHeight: (options.maxHeight - handleHeight) + "px",
                     })
+
+                    if(windowManager.maximizedCount > 0) windowManager.maximizedCount--
+                    windowManager.anyMaximized = !!windowManager.maximizedCount
                 }
+
+                if(options.onResize) options.onResize(null, null)
             },
     
             maximize(){
@@ -231,6 +257,10 @@ let windowManager = {
             addToWorkspace(){
                 windowManager.target.add(_window)
                 tools.focus()
+            },
+
+            bell(){
+
             }
         }
     
