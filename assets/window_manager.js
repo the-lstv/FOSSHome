@@ -45,6 +45,8 @@ let windowManager = {
             handle: true,
             snappingRadius: 50,
             cornerSnapping: true,
+
+            buttonClass: "elevated circle"
         }, options)
     
         let _window = N({
@@ -68,9 +70,9 @@ let windowManager = {
                         N({
                             class: "window-buttons",
                             inner:[
-                                options.minimizeable? N("button", {accent: "auto", class: "elevated circle", inner: "<i class=bi-dash-lg></i>", onclick() {tools.minimize()}}) : "",
-                                options.maximizeable? N("button", {accent: "auto", class: "elevated circle", inner: "<i class=bi-square></i>", onclick() {tools.maximizeToggle()}}) : "",
-                                options.closeable? N("button", {accent: "red", class: "elevated circle", inner: "<i class=bi-x-lg></i>", onclick() {tools.close()}}) : "",
+                                options.minimizeable? N("button", {accent: "auto", class: options.buttonClass, inner: "<i class=bi-dash-lg></i>", onclick() {tools.minimize()}}) : "",
+                                options.maximizeable? N("button", {accent: "auto", class: options.buttonClass, inner: "<i class=bi-square></i>", onclick() {tools.maximizeToggle()}}) : "",
+                                options.closeable? N("button", {accent: "red", class: options.buttonClass, inner: "<i class=bi-x-lg></i>", onclick() {tools.close()}}) : "",
                             ]
                         })
                     ]}): "",
@@ -93,7 +95,7 @@ let windowManager = {
         })
     
         if(options.handle) _window.get(".window-handle").on("dblclick", event => {
-            if(event.target.tagName === "button") return;
+            if(event.target.tagName === "button" || options.handleInteractableSelector? event.target.matches(options.handleInteractableSelector) : false) return;
 
             tools.maximizeToggle()
         })
