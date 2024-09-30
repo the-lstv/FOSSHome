@@ -34,6 +34,10 @@ let windowManager = {
         options = LS.Util.defaults({
             width: 300,
             height: 460,
+
+            x: 0,
+            y: 0,
+
             minWidth: 200,
             maxWidth: 1000,
             minHeight: 0,
@@ -70,7 +74,7 @@ let windowManager = {
                         N({
                             class: "window-buttons",
                             inner:[
-                                options.minimizeable? N("button", {accent: "auto", class: options.buttonClass, inner: "<i class=bi-dash-lg></i>", onclick() {tools.minimize()}}) : "",
+                                // options.minimizeable? N("button", {accent: "auto", class: options.buttonClass, inner: "<i class=bi-dash-lg></i>", onclick() {tools.minimize()}}) : "",
                                 options.maximizeable? N("button", {accent: "auto", class: options.buttonClass, inner: "<i class=bi-square></i>", onclick() {tools.maximizeToggle()}}) : "",
                                 options.closeable? N("button", {accent: "red", class: options.buttonClass, inner: "<i class=bi-x-lg></i>", onclick() {tools.close()}}) : "",
                             ]
@@ -86,10 +90,11 @@ let windowManager = {
         }).on("resize", (direction, properties) => {
             if(options.onResize) options.onResize(direction, properties)
         })
-        
+
         let handle;
         
-        if(options.handle) handle = LS.Util.RegisterMouseDrag(_window.get(".window-handle"), ".window-buttons *" + (options.handleInteractableSelector? `, ${options.handleInteractableSelector}`: ""), {
+        if(options.handle) handle = LS.Util.touchHandle(_window.get(".window-handle"), {
+            exclude: ".window-buttons *" + (options.handleInteractableSelector? `, ${options.handleInteractableSelector}`: ""),
             buttons: [0],
             cursor: "grabbing"
         })
@@ -103,14 +108,17 @@ let windowManager = {
 
         let initialX = M.x,
             initialY = M.y,
-            initialBound
+            initialBound,
+            targetBound
         ;
     
         function onMoveStart(){
             initialX = M.x
             initialY = M.y
 
-            initialBound = _window.getBoundingClientRect()
+            targetBound = windowManager.target.getBoundingClientRect()
+
+            initialBound = transformRect(_window.getBoundingClientRect())
             currentX = initialBound.left
             currentY = initialBound.top
             previousX = currentX
@@ -118,18 +126,28 @@ let windowManager = {
     
             if(options.onMoveStart) options.onMoveStart()
         }
+
+        // Account for containers
+        function transformRect(rect){
+            rect.x = rect.x - targetBound.x
+            rect.y = rect.y - targetBound.y
+            return rect
+        }
     
         if(options.handle) handle.on("start", onMoveStart)
     
         if(options.handle) handle.on("move", () => {
+            let innerHeight = targetBound.height;
+            let innerWidth = targetBound.width;
+
             if(tools.maximized) {
                 tools.maximized = false
                 _window.style.top = (M.y - (M.y / 2)) + "px"
                 _window.style.left = (M.x - (M.x / 2)) + "px"
-                initialBound = _window.getBoundingClientRect();
+                initialBound = transformRect(_window.getBoundingClientRect());
             }
-            
-            let currentBound = _window.getBoundingClientRect();
+
+            let currentBound = transformRect(_window.getBoundingClientRect());
     
             currentX = Math.max((currentBound.width * -1) + 65, Math.min(innerWidth - 65, (M.x - (initialX - initialBound.left)))),
             currentY = Math.max(0, Math.min(innerHeight - 200, (M.y - (initialY - initialBound.top))))
@@ -140,8 +158,7 @@ let windowManager = {
                 if(currentY + currentBound.height >= innerHeight && currentY + currentBound.height < innerHeight + options.snappingRadius && currentY > previousY) currentY = previousY;
             }
             
-            _window.style.left = currentX + "px"
-            _window.style.top = currentY + "px"
+            tools.move(currentX, currentY)
 
             if(options.onMove) options.onMove()
 
@@ -167,6 +184,11 @@ let windowManager = {
             options,
     
             gid: M.GlobalID,
+
+            move(x, y){
+                _window.style.left = x + "px"
+                _window.style.top = y + "px"
+            },
     
             focus(){
                 windowManager.globalWindowTopIndex++
@@ -189,18 +211,16 @@ let windowManager = {
                         prevent = true
                     }
                 })
-    
+
                 if(prevent) return;
     
                 _window.remove()
-                delete windowManager.windowList[id]
+
+                if(options.destroyOnClose) delete windowManager.windowList[id]
             },
     
             minimize(){
-                LS.Toast.show("Got nowhere to minimize the window to (yet)", {
-                    accent: "red",
-                    timeout: 3000
-                })
+                // ...
             },
     
             get maximized(){
@@ -270,6 +290,8 @@ let windowManager = {
 
         tools.id = id;
     
+        tools.move(options.x, options.y)
+
         return tools
     }
 }

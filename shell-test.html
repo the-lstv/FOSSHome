@@ -98,11 +98,13 @@
 
             // Standard default bash ("-i" to launch an interactive shell)
 
-            bash = await os.process('bash', null, ["-i"], {
+            bash = await os.process('bash', null, ["-i"])
+
+            let bashInstance = bash.run(null, null, {
                 onstdout(data){
                     // this shi should be handled by xterm.js 😠
                     if (data.includes('\x1B[18t')) {
-                        bash.std.in = `\x1B[8;${term.rows};${term.cols}t`;
+                        bashInstance.write(`\x1B[8;${term.rows};${term.cols}t`);
                     } else {
                         term.write(data);
                     }
@@ -114,25 +116,18 @@
     
                 onexit(code){
                     // ...
+                    console.log("Exit", code);
+                    
                     terminalWindow.close()
                 }
             })
 
-
-            // Push stdin to the bash
-
-            // term.onKey(e => {
-            //     // console.log(e);
-    
-            //     bash.std.in = e.key
-            // });
-
             term.onData(data => {
-                bash.std.in = data
+                bashInstance.write(data)
             });
 
             term.onResize(size => {
-                bash.std.in = `\x1B[8;${term.rows};${term.cols}t`;
+                bashInstance.write(`\x1B[8;${term.rows};${term.cols}t`);
             });
     
     
